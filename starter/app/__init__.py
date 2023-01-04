@@ -17,7 +17,15 @@ def index():
 
 @app.route('/feed')
 def feed():
-    return render_template("feed.html", feed=tweets)
+    def sort_by_date(item):
+        date_info = item['date'].split("/")
+        year = int(date_info[2])
+        month = int(date_info[0])
+        day = int(date_info[1])
+        return date(year, month, day)
+    sorted_feed = sorted(tweets, key=lambda x: sort_by_date(x))
+    return render_template("feed.html", feed=sorted_feed)
+
 
 @app.route('/new', methods=['GET', 'POST'])
 def create_tweet():
@@ -28,13 +36,17 @@ def create_tweet():
             "id": len(tweets),
             "author": form.data['author'],
             "tweet": form.data['tweet'],
-            "date": date.today(),
+            "date": date.today().strftime("%-m/%-d/%y"),
             "likes": 0
         }
         tweets.append(new_tweet)
         return redirect('/feed', 302)
-    
+
     if form.errors:
         return form.errors
 
     return render_template("new_tweet.html", form=form)
+
+
+# @app.route("/like")
+# def add_like():
